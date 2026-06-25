@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SupplyGuard AI — Supply Chain Risk Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg: #0a0b0e;
+  --bg2: #111318;
+  --bg3: #181c24;
+  --bg4: #1e2330;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.10);
+  --text: #e8eaf0;
+  --text2: #8b91a8;
+  --text3: #555c73;
+  --accent: #6366f1;
+  --accent2: #818cf8;
+  --accent-glow: rgba(99,102,241,0.15);
+  --green: #10b981;
+  --green-bg: rgba(16,185,129,0.10);
+  --amber: #f59e0b;
+  --amber-bg: rgba(245,158,11,0.10);
+  --red: #ef4444;
+  --red-bg: rgba(239,68,68,0.10);
+  --blue: #3b82f6;
+  --blue-bg: rgba(59,130,246,0.10);
+  --radius: 10px;
+  --radius-sm: 6px;
+  --font: 'Inter', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.platinum-bar {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #6366f1, #818cf8, #a5b4fc, #818cf8, #6366f1, transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+@keyframes slide-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes spin { to{transform:rotate(360deg)} }
+@keyframes count-up { from{opacity:0} to{opacity:1} }
+
+header {
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+
+.logo-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--accent);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--green-bg);
+  border: 1px solid rgba(16,185,129,0.2);
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.02em;
+}
+
+.live-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+.nav-pills {
+  display: flex;
+  gap: 2px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+}
+
+.nav-pill {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.nav-pill.active, .nav-pill:hover {
+  background: var(--bg4);
+  color: var(--text);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: calc(100vh - 58px);
+}
+
+.sidebar {
+  border-right: 1px solid var(--border);
+  padding: 24px 16px;
+  background: var(--bg);
+}
+
+.sidebar-section {
+  margin-bottom: 28px;
+}
+
+.sidebar-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  text-transform: uppercase;
+  padding: 0 8px;
+  margin-bottom: 6px;
+}
+
+.supplier-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 2px;
+}
+
+.supplier-item:hover { background: var(--bg2); }
+.supplier-item.selected { background: var(--bg3); }
+
+.supplier-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.supplier-info { flex: 1; min-width: 0; }
+.supplier-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.supplier-meta { font-size: 11px; color: var(--text2); }
+
+.risk-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+.risk-critical { background: var(--red-bg); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+.risk-high { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
+.risk-medium { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(59,130,246,0.2); }
+.risk-low { background: var(--green-bg); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+
+.main { padding: 28px 32px; }
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.page-title { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 3px; }
+.page-sub { font-size: 13px; color: var(--text2); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover { background: #5558eb; transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text2);
+  border: 1px solid var(--border2);
+}
+
+.btn-ghost:hover { background: var(--bg3); color: var(--text); }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  transition: border-color 0.2s;
+}
+
+.stat-card:hover { border-color: var(--border2); }
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text2);
+  letter-spacing: 0.02em;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.stat-delta {
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.card-body { padding: 16px; }
+
+.panel { margin-bottom: 16px; }
+
+.risk-analyzer {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 24px;
+}
+
+.analyzer-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.analyzer-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.analyzer-body { padding: 20px; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group.full { grid-column: 1 / -1; }
+
+label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text2);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+input, textarea, select {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 8px 10px;
+  width: 100%;
+  transition: border-color 0.15s;
+  outline: none;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+textarea { resize: vertical; min-height: 72px; line-height: 1.5; }
+select option { background: var(--bg3); }
+
+.spend-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+input[type=range] {
+  -webkit-appearance: none;
+  flex: 1;
+  height: 4px;
+  background: var(--bg4);
+  border: none;
+  border-radius: 2px;
+  padding: 0;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+.spend-display {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent2);
+  min-width: 90px;
+  text-align: right;
+}
+
+.analyze-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.api-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.result-panel {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-top: 16px;
+  overflow: hidden;
+  animation: slide-in 0.3s ease;
+  display: none;
+}
+
+.result-panel.visible { display: block; }
+
+.result-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.severity-bar-wrap {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.severity-score-big {
+  font-size: 48px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  min-width: 70px;
+}
+
+.severity-track {
+  flex: 1;
+  height: 6px;
+  background: var(--bg3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.severity-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+}
+
+.result-cell {
+  padding: 14px 20px;
+  border-right: 1px solid var(--border);
+}
+
+.result-cell:last-child { border-right: none; }
+
+.result-cell-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 4px;
+}
+
+.result-cell-value {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.result-section {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.result-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+
+.vendor-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.vendor-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+
+.vendor-name {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.vendor-stats {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.vendor-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.vendor-stat-label { font-size: 10px; color: var(--text3); }
+.vendor-stat-val { font-size: 12px; font-weight: 500; font-family: var(--mono); }
+
+.vendor-notes { font-size: 11px; color: var(--text2); line-height: 1.5; }
+
+.email-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+.email-subject {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.email-body {
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.7;
+  max-height: 160px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  font-family: var(--mono);
+}
+
+.summary-box {
+  background: var(--bg3);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+.action-box {
+  background: var(--amber-bg);
+  border: 1px solid rgba(245,158,11,0.2);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--amber);
+  line-height: 1.6;
+}
+
+.approval-banner {
+  background: var(--red-bg);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--red);
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.1);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+.event-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.event-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.event-item:hover { background: var(--bg3); }
+.event-item:last-child { border-bottom: none; }
+
+.event-dot-wrap { padding-top: 4px; }
+
+.event-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.event-content { flex: 1; min-width: 0; }
+.event-title { font-size: 12px; font-weight: 500; margin-bottom: 2px; }
+.event-desc { font-size: 11px; color: var(--text2); line-height: 1.4; }
+.event-time { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-top: 2px; }
+
+.tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+.chart-wrap { padding: 8px 0; }
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.bar-label { font-size: 11px; color: var(--text2); width: 90px; flex-shrink: 0; text-align: right; }
+.bar-track { flex: 1; height: 5px; background: var(--bg4); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.bar-val { font-size: 11px; font-family: var(--mono); color: var(--text2); width: 30px; }
+
+.copy-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  color: var(--text2);
+  font-size: 11px;
+  font-family: var(--font);
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.copy-btn:hover { background: var(--bg4); color: var(--text); }
+
+.api-url {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent2);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--text);
+  animation: slide-in 0.3s ease;
+  z-index: 1000;
+  display: none;
+}
+
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.scenario-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+
+.scenario-btn:hover { border-color: var(--accent); background: var(--bg4); }
+
+.scenario-btn-title { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+.scenario-btn-sub { font-size: 11px; color: var(--text2); }
+</style>
+</head>
+<body>
+
+<div class="platinum-bar"></div>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">⬡</div>
+    SupplyGuard AI
+  </div>
+  <div class="nav-pills">
+    <button class="nav-pill active">Risk monitor</button>
+    <button class="nav-pill">Suppliers</button>
+    <button class="nav-pill">Analytics</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="api-url">localhost:8000</div>
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      API live
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Monitored suppliers</div>
+
+      <div class="supplier-item selected" onclick="loadSupplier('acme')">
+        <div class="supplier-avatar" style="background:#ef444420;color:#ef4444">AC</div>
+        <div class="supplier-info">
+          <div class="supplier-name">Acme Components</div>
+          <div class="supplier-meta">$2.4M · Electronics</div>
+        </div>
+        <div class="risk-badge risk-critical">9</div>
+      </div>
+
+      <div class="supplier-item" onclick="loadSupplier('global')">
+        <div class="supplier-avatar" style="background:#f59e0b20;color:#f59e0b">GL</div>
+        <div class="supplier-info">
+          <div class="supplier-name">Global Logistics Co</div>
+          <div class="supplier-meta">$890K · Shipping</div>
+        </div>
+        <div class="risk-badge risk-high">6</div>
+      </div>
+
+      <div class="supplier-item" onclick="loadSupplier('steelworks')">
+        <div class="supplier-avatar" style="background:#3b82f620;color:#3b82f6">SW</div>
+        <div class="supplier-info">
+          <div class="supplier-name">SteelWorks Ltd</div>
+          <div class="supplier-meta">$1.75M · Raw materials</div>
+        </div>
+        <div class="risk-badge risk-medium">4</div>
+      </div>
+
+      <div class="supplier-item" onclick="loadSupplier('pacific')">
+        <div class="supplier-avatar" style="background:#10b98120;color:#10b981">PM</div>
+        <div class="supplier-info">
+          <div class="supplier-name">Pacific Microchips</div>
+          <div class="supplier-meta">$3.1M · Semiconductors</div>
+        </div>
+        <div class="risk-badge risk-low">2</div>
+      </div>
+
+      <div class="supplier-item" onclick="loadSupplier('euromed')">
+        <div class="supplier-avatar" style="background:#8b5cf620;color:#8b5cf6">EM</div>
+        <div class="supplier-info">
+          <div class="supplier-name">EuroMed Pharma</div>
+          <div class="supplier-meta">$670K · Pharmaceuticals</div>
+        </div>
+        <div class="risk-badge risk-high">7</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Quick scenarios</div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <button class="scenario-btn" onclick="fillScenario('bankruptcy')">
+          <div class="scenario-btn-title">Chapter 11 bankruptcy</div>
+          <div class="scenario-btn-sub">Critical · Financial</div>
+        </button>
+        <button class="scenario-btn" onclick="fillScenario('fire')">
+          <div class="scenario-btn-title">Factory fire</div>
+          <div class="scenario-btn-sub">High · Operational</div>
+        </button>
+        <button class="scenario-btn" onclick="fillScenario('sanctions')">
+          <div class="scenario-btn-title">Trade sanctions</div>
+          <div class="scenario-btn-sub">High · Geopolitical</div>
+        </button>
+        <button class="scenario-btn" onclick="fillScenario('port')">
+          <div class="scenario-btn-title">Port strike</div>
+          <div class="scenario-btn-sub">Medium · Logistics</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total suppliers</div>
+        <div class="stat-value" style="color:var(--text)">5</div>
+        <div class="stat-delta">Actively monitored</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Critical risks</div>
+        <div class="stat-value" style="color:var(--red)">1</div>
+        <div class="stat-delta" style="color:var(--red)">Requires immediate action</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Spend at risk</div>
+        <div class="stat-value" style="color:var(--amber)">$4.1M</div>
+        <div class="stat-delta">Of $8.9M total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg. triage time</div>
+        <div class="stat-value" style="color:var(--green)">9s</div>
+        <div class="stat-delta">Claude Sonnet · Live</div>
+      </div>
+    </div>
+
+    <div class="risk-analyzer">
+      <div class="analyzer-header">
+        <div>
+          <div class="analyzer-title">Risk analyzer</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">Runs Claude triage + vendor recommendation agents via UiPath Maestro</div>
+        </div>
+        <div class="api-url">/full-pipeline</div>
+      </div>
+      <div class="analyzer-body">
+        <div style="margin-bottom:12px">
+          <div class="sidebar-label" style="padding:0;margin-bottom:8px">Quick-load scenario</div>
+          <div class="scenario-grid">
+            <button class="scenario-btn" onclick="fillScenario('bankruptcy')">
+              <div class="scenario-btn-title">Chapter 11 bankruptcy</div>
+              <div class="scenario-btn-sub">Acme Components · $2.4M</div>
+            </button>
+            <button class="scenario-btn" onclick="fillScenario('fire')">
+              <div class="scenario-btn-title">Factory fire (40% capacity)</div>
+              <div class="scenario-btn-sub">SteelWorks Ltd · $1.75M</div>
+            </button>
+            <button class="scenario-btn" onclick="fillScenario('sanctions')">
+              <div class="scenario-btn-title">Government trade sanctions</div>
+              <div class="scenario-btn-sub">Pacific Microchips · $3.1M</div>
+            </button>
+            <button class="scenario-btn" onclick="fillScenario('port')">
+              <div class="scenario-btn-title">Major port strike</div>
+              <div class="scenario-btn-sub">Global Logistics · $890K</div>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Supplier name</label>
+            <input type="text" id="inp-supplier" placeholder="e.g. Acme Components" value="Acme Components">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select id="inp-category">
+              <option value="electronics">Electronics</option>
+              <option value="raw_materials">Raw materials</option>
+              <option value="shipping">Shipping / Logistics</option>
+              <option value="pharmaceuticals">Pharmaceuticals</option>
+              <option value="semiconductors">Semiconductors</option>
+              <option value="general">General</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full">
+            <label>Risk event description</label>
+            <textarea id="inp-risk" placeholder="Describe what happened...">Acme Components has filed for Chapter 11 bankruptcy protection, citing supply chain disruptions and rising component costs.</textarea>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Annual spend</label>
+          <div class="spend-slider-row">
+            <input type="range" id="inp-spend" min="100000" max="10000000" step="50000" value="2400000" oninput="updateSpend(this.value)">
+            <div class="spend-display" id="spend-display">$2,400,000</div>
+          </div>
+        </div>
+
+        <div class="analyze-footer">
+          <div class="api-status">
+            <div class="live-dot" style="background:var(--accent)"></div>
+            Calling localhost:8000 → UiPath Maestro → Claude Sonnet
+          </div>
+          <button class="btn btn-primary" onclick="runAnalysis()" id="analyze-btn">
+            <span id="btn-text">Analyze risk</span>
+          </button>
+        </div>
+
+        <div class="result-panel" id="result-panel">
+          <div class="result-header">
+            <div style="font-size:13px;font-weight:600">Triage result — <span id="res-supplier"></span></div>
+            <div id="approval-tag"></div>
+          </div>
+
+          <div class="severity-bar-wrap">
+            <div>
+              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Severity</div>
+              <div class="severity-score-big" id="res-severity">0</div>
+              <div style="font-size:11px;color:var(--text2);margin-top:2px">/10</div>
+            </div>
+            <div style="flex:1">
+              <div class="severity-track">
+                <div class="severity-fill" id="severity-fill" style="width:0%"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--text3)">
+                <span>Low</span><span>Medium</span><span>High</span><span>Critical</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-grid">
+            <div class="result-cell">
+              <div class="result-cell-label">Category</div>
+              <div class="result-cell-value" id="res-category">—</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-cell-label">Est. financial impact</div>
+              <div class="result-cell-value" id="res-impact">—</div>
+            </div>
+            <div class="result-cell">
+              <div class="result-cell-label">Recommended order</div>
+              <div class="result-cell-value" id="res-order">—</div>
+            </div>
+          </div>
+
+          <div class="result-section">
+            <div class="result-section-title">Summary</div>
+            <div class="summary-box" id="res-summary"></div>
+          </div>
+
+          <div class="result-section">
+            <div class="result-section-title">Recommended action</div>
+            <div class="action-box" id="res-action"></div>
+          </div>
+
+          <div class="result-section">
+            <div class="result-section-title">Alternative vendors</div>
+            <div class="vendor-cards" id="res-vendors"></div>
+          </div>
+
+          <div class="result-section">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div class="result-section-title" style="margin-bottom:0">Draft procurement email</div>
+              <button class="copy-btn" onclick="copyEmail()">Copy email</button>
+            </div>
+            <div class="email-box">
+              <div class="email-subject" id="res-email-subject"></div>
+              <div class="email-body" id="res-email-body"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Risk event feed</div>
+          <div style="font-size:11px;color:var(--text3)">Last 24h</div>
+        </div>
+        <div class="event-feed" id="event-feed">
+          <div class="event-item" onclick="loadEvent('bankruptcy')">
+            <div class="event-dot-wrap"><div class="event-dot" style="background:var(--red)"></div></div>
+            <div class="event-content">
+              <div class="event-title">Acme Components — Bankruptcy filing</div>
+              <div class="event-desc">Chapter 11 petition filed in Delaware. $2.4M annual spend at risk.</div>
+              <div class="event-time">2 min ago · severity 9</div>
+            </div>
+          </div>
+          <div class="event-item" onclick="loadEvent('euromed')">
+            <div class="event-dot-wrap"><div class="event-dot" style="background:var(--amber)"></div></div>
+            <div class="event-content">
+              <div class="event-title">EuroMed Pharma — Regulatory warning</div>
+              <div class="event-desc">FDA issued import alert on 3 active ingredients. Shipment hold likely.</div>
+              <div class="event-time">41 min ago · severity 7</div>
+            </div>
+          </div>
+          <div class="event-item" onclick="loadEvent('port')">
+            <div class="event-dot-wrap"><div class="event-dot" style="background:var(--amber)"></div></div>
+            <div class="event-content">
+              <div class="event-title">Global Logistics — Port congestion</div>
+              <div class="event-desc">Rotterdam port strike entering week 2. Delays of 12–18 days reported.</div>
+              <div class="event-time">2h ago · severity 6</div>
+            </div>
+          </div>
+          <div class="event-item">
+            <div class="event-dot-wrap"><div class="event-dot" style="background:var(--blue)"></div></div>
+            <div class="event-content">
+              <div class="event-title">SteelWorks Ltd — Q2 earnings miss</div>
+              <div class="event-desc">Revenue 18% below forecast. Credit rating under review by Moody's.</div>
+              <div class="event-time">5h ago · severity 4</div>
+            </div>
+          </div>
+          <div class="event-item">
+            <div class="event-dot-wrap"><div class="event-dot" style="background:var(--green)"></div></div>
+            <div class="event-content">
+              <div class="event-title">Pacific Microchips — All clear</div>
+              <div class="event-desc">Q2 production targets met. New Taiwan fab expansion on schedule.</div>
+              <div class="event-time">1d ago · severity 2</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Spend exposure by risk level</div>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrap">
+            <div class="bar-row">
+              <div class="bar-label">Critical</div>
+              <div class="bar-track"><div class="bar-fill" id="bar-critical" style="width:0%;background:var(--red)"></div></div>
+              <div class="bar-val">$2.4M</div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">High</div>
+              <div class="bar-track"><div class="bar-fill" id="bar-high" style="width:0%;background:var(--amber)"></div></div>
+              <div class="bar-val">$1.6M</div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Medium</div>
+              <div class="bar-track"><div class="bar-fill" id="bar-medium" style="width:0%;background:var(--blue)"></div></div>
+              <div class="bar-val">$1.75M</div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label">Low</div>
+              <div class="bar-track"><div class="bar-fill" id="bar-low" style="width:0%;background:var(--green)"></div></div>
+              <div class="bar-val">$3.1M</div>
+            </div>
+          </div>
+
+          <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
+            <div class="sidebar-label" style="padding:0;margin-bottom:10px">Triage agent runs today</div>
+            <div style="display:flex;gap:16px">
+              <div>
+                <div style="font-size:22px;font-weight:600;color:var(--text)" id="run-count">0</div>
+                <div style="font-size:11px;color:var(--text2)">Total runs</div>
+              </div>
+              <div>
+                <div style="font-size:22px;font-weight:600;color:var(--green)" id="success-count">0</div>
+                <div style="font-size:11px;color:var(--text2)">Successful</div>
+              </div>
+              <div>
+                <div style="font-size:22px;font-weight:600;color:var(--amber)" id="approval-count">0</div>
+                <div style="font-size:11px;color:var(--text2)">Human approvals triggered</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'http://localhost:8000';
+let runs = 0, successes = 0, approvals = 0;
+let lastEmailBody = '';
+
+const scenarios = {
+  bankruptcy: {
+    supplier: 'Acme Components',
+    category: 'electronics',
+    risk: 'Acme Components has filed for Chapter 11 bankruptcy protection, citing supply chain disruptions and rising component costs. All outstanding purchase orders are now at risk.',
+    spend: 2400000
+  },
+  fire: {
+    supplier: 'SteelWorks Ltd',
+    category: 'raw_materials',
+    risk: 'A major factory fire at SteelWorks Ltd\'s primary production facility has destroyed 40% of capacity. The plant will be offline for at least 90 days.',
+    spend: 1750000
+  },
+  sanctions: {
+    supplier: 'Pacific Microchips',
+    category: 'semiconductors',
+    risk: 'The US Department of Commerce has imposed trade sanctions on Pacific Microchips due to export control violations. Immediate halt on all shipments ordered.',
+    spend: 3100000
+  },
+  port: {
+    supplier: 'Global Logistics Co',
+    category: 'shipping',
+    risk: 'Dock workers at the Rotterdam port have entered week 2 of an indefinite strike. All sea freight through Northwest Europe is delayed 12-18 days with no resolution in sight.',
+    spend: 890000
+  },
+  euromed: {
+    supplier: 'EuroMed Pharma',
+    category: 'pharmaceuticals',
+    risk: 'FDA has issued an import alert on three active pharmaceutical ingredients supplied by EuroMed. All incoming shipments are being detained at the border pending investigation.',
+    spend: 670000
+  }
+};
+
+function fillScenario(key) {
+  const s = scenarios[key];
+  if (!s) return;
+  document.getElementById('inp-supplier').value = s.supplier;
+  document.getElementById('inp-category').value = s.category;
+  document.getElementById('inp-risk').value = s.risk;
+  document.getElementById('inp-spend').value = s.spend;
+  updateSpend(s.spend);
+}
+
+function loadEvent(key) { fillScenario(key); showToast('Scenario loaded — click Analyze risk'); }
+function loadSupplier(key) {
+  document.querySelectorAll('.supplier-item').forEach(el => el.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+}
+
+function updateSpend(val) {
+  const n = parseInt(val);
+  document.getElementById('spend-display').textContent = '$' + n.toLocaleString();
+}
+
+async function runAnalysis() {
+  const btn = document.getElementById('analyze-btn');
+  const btnText = document.getElementById('btn-text');
+  const supplier = document.getElementById('inp-supplier').value.trim();
+  const risk = document.getElementById('inp-risk').value.trim();
+  const spend = parseInt(document.getElementById('inp-spend').value);
+  const category = document.getElementById('inp-category').value;
+
+  if (!supplier || !risk) { showToast('Fill in supplier name and risk description'); return; }
+
+  btn.disabled = true;
+  btnText.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
+  document.getElementById('result-panel').classList.remove('visible');
+
+  runs++;
+  document.getElementById('run-count').textContent = runs;
+
+  try {
+    const res = await fetch(API + '/full-pipeline', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ supplier_name: supplier, risk_description: risk, annual_spend: spend, category })
+    });
+
+    if (!res.ok) throw new Error('API error ' + res.status);
+    const data = await res.json();
+    successes++;
+    document.getElementById('success-count').textContent = successes;
+
+    if (data.triage.requires_human_approval || data.requires_human_approval) {
+      approvals++;
+      document.getElementById('approval-count').textContent = approvals;
+    }
+
+    renderResult(data, supplier);
+    animateBars();
+
+  } catch (err) {
+    showToast('API error — is uvicorn running? ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btnText.textContent = 'Analyze risk';
+  }
+}
+
+function renderResult(data, supplier) {
+  const t = data.triage;
+  const v = data.vendors;
+  const sev = t.severity;
+
+  document.getElementById('res-supplier').textContent = supplier;
+  document.getElementById('res-severity').textContent = sev;
+
+  const fill = document.getElementById('severity-fill');
+  fill.style.width = (sev * 10) + '%';
+  if (sev >= 8) fill.style.background = 'var(--red)';
+  else if (sev >= 6) fill.style.background = 'var(--amber)';
+  else if (sev >= 4) fill.style.background = 'var(--blue)';
+  else fill.style.background = 'var(--green)';
+
+  document.getElementById('res-severity').style.color =
+    sev >= 8 ? 'var(--red)' : sev >= 6 ? 'var(--amber)' : sev >= 4 ? 'var(--blue)' : 'var(--green)';
+
+  document.getElementById('res-category').textContent = t.category.replace(/_/g,' ');
+  document.getElementById('res-impact').textContent = '$' + (t.estimated_impact_usd || 0).toLocaleString();
+  document.getElementById('res-order').textContent = v && v.recommended_order_value ? '$' + v.recommended_order_value.toLocaleString() : '—';
+  document.getElementById('res-summary').textContent = t.summary;
+  document.getElementById('res-action').textContent = t.recommended_action;
+
+  const approvalTag = document.getElementById('approval-tag');
+  if (t.requires_human_approval) {
+    approvalTag.innerHTML = '<div class="risk-badge risk-critical">⚠ Human approval required</div>';
+  } else {
+    approvalTag.innerHTML = '<div class="risk-badge risk-low">Auto-approved</div>';
+  }
+
+  if (v && v.alternative_vendors) {
+    document.getElementById('res-vendors').innerHTML = v.alternative_vendors.map(vn => `
+      <div class="vendor-card">
+        <div class="vendor-name">${vn.name}</div>
+        <div class="vendor-stats">
+          <div class="vendor-stat">
+            <div class="vendor-stat-label">Lead time</div>
+            <div class="vendor-stat-val">${vn.estimated_lead_time_days || vn.leadTimeDays || '—'}d</div>
+          </div>
+          <div class="vendor-stat">
+            <div class="vendor-stat-label">Premium</div>
+            <div class="vendor-stat-val">+${vn.estimated_cost_premium_pct || vn.costPremiumPct || 0}%</div>
+          </div>
+        </div>
+        <div class="vendor-notes">${vn.notes}</div>
+      </div>
+    `).join('');
+  }
+
+  if (v && v.draft_email) {
+    document.getElementById('res-email-subject').textContent = v.draft_email.subject || v.draft_email.subject;
+    const body = v.draft_email.body || '';
+    document.getElementById('res-email-body').textContent = body;
+    lastEmailBody = body;
+  }
+
+  document.getElementById('result-panel').classList.add('visible');
+  document.getElementById('result-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function animateBars() {
+  setTimeout(() => {
+    document.getElementById('bar-critical').style.width = '27%';
+    document.getElementById('bar-high').style.width = '18%';
+    document.getElementById('bar-medium').style.width = '20%';
+    document.getElementById('bar-low').style.width = '35%';
+  }, 200);
+}
+
+function copyEmail() {
+  const subject = document.getElementById('res-email-subject').textContent;
+  const body = lastEmailBody;
+  navigator.clipboard.writeText('Subject: ' + subject + '\n\n' + body).then(() => showToast('Email copied to clipboard'));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 2800);
+}
+
+animateBars();
+fillScenario('bankruptcy');
+</script>
+</body>
+</html>
