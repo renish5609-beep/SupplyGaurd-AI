@@ -29,3 +29,66 @@ This solution utilizes **Low-code Agents** built in UiPath Agent Builder, powere
 ---
 
 ## BPMN Process Flow
+---
+
+## Setup Instructions
+
+### Prerequisites
+- Python 3.9+
+- UiPath Automation Cloud account
+- Anthropic API key
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/renish5609-beep/SupplyGaurd-AI
+cd SupplyGaurd-AI
+```
+
+### 2. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Configure environment variables
+Create a `.env` file in the root directory:
+
+### 4. Start the FastAPI backend
+```bash
+python -m uvicorn api.main:app --port 8000
+```
+
+The API will be available at `http://localhost:8000`. Verify with:
+```bash
+curl http://localhost:8000/health
+```
+
+### 5. Open the dashboard
+Open `dashboard.html` in your browser. No additional server required — the dashboard is a single HTML file.
+
+### 6. UiPath Maestro BPMN (for judging)
+- Tenant: `https://staging.uipath.com/hackathon26_892/DefaultTenant`
+- Process: **SupplyGuard Risk Response**
+- Both agents are live in Agent Builder and the BPMN process has been successfully debug-run with all steps green
+
+### 7. Run a test analysis
+1. Open the dashboard
+2. Click **Monitor** tab
+3. Click the **Bankruptcy** scenario card (Acme Components, $2.4M)
+4. Click **Analyze**
+5. The full pipeline returns severity score, vendor alternatives, and draft email in ~9 seconds
+
+---
+
+## Tech Stack
+
+- UiPath Maestro BPMN, Agent Builder, Action Center
+- Claude Sonnet (Anthropic) via AWS Bedrock
+- FastAPI + Python
+- HTML/CSS/JavaScript + Chart.js
+- Built with Claude Code as primary coding agent
+
+---
+
+## Hackathon Track
+
+**Track 2: UiPath Maestro BPMN** — UiPath AgentHack 2026
